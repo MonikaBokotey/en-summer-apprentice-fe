@@ -64,6 +64,12 @@ async function fetchEvents(){
 }
 
 async function placeOrder(orderData) {
+  const orderData1 = {
+    "eventId": "1",
+    "ticketCategoryId": "2",
+    "numberOfTickets": "3"
+  };
+  console.log('order', orderData1);
   const url = 'http://localhost:9090/api/orders'; // Replace with your actual API endpoint
   const options = {
     method: 'POST',
@@ -71,13 +77,14 @@ async function placeOrder(orderData) {
       'Content-Type': 'application/json', // Set the appropriate content type
       // Add any additional headers if needed
     },
-    body: JSON.stringify(orderData), // Convert your data to JSON
+    body: JSON.stringify(orderData1), // Convert your data to JSON
   };
 
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      const errorMessage = await response.text(); // Get the error message from the response body
+      throw new Error(`Network response was not ok: ${response.status} - ${errorMessage}`);
     }
     const data = await response.json();
     return data;
@@ -93,12 +100,12 @@ const orderData = {
 	"numberOfTickets": "3"
 };
 
+
 // Call the placeOrder function with the order data
 placeOrder(orderData).then(data => {
   console.log('Order placed:', data);
   // Process the response data as needed
 });
-
 
 function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
@@ -106,8 +113,6 @@ function renderHomePage() {
 
   fetchEvents().then(data => {
     console.log('Fetched data:', data);
-
-  
 
     const eventsContainer = document.createElement('div');
     eventsContainer.classList.add('events');
@@ -153,6 +158,23 @@ function renderHomePage() {
         dropdowns.classList.toggle('hidden');
       });
    
+      // Attach the event listener to the current "Purchase" button
+      const purchaseButton = eventCard.querySelector('.btn.btn-primary');
+      purchaseButton.addEventListener('click', async () => {
+        const orderData = {
+          eventId: eventData.eventId,
+          ticketCategoryId: eventCard.querySelector('.ticket-category').value,
+          numberOfTickets: eventCard.querySelector('.ticket-quantity').value,
+        };
+
+        try {
+          const response = await placeOrder(orderData);
+          console.log('Order placed:', response);
+          // Process the response data as needed
+        } catch (error) {
+          console.error('Error placing order:', error);
+        }
+      });
     });
 
     mainContentDiv.appendChild(eventsContainer);
