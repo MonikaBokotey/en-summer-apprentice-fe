@@ -56,68 +56,109 @@ function setupInitialPage() {
   renderContent(initialUrl);
 }
 
+
+async function fetchEvents(){
+  const response = await fetch('https://localhost:7214/api/Event/GetAll');
+  const data=await response.json();
+  return data;
+}
+
+async function placeOrder(orderData) {
+  const url = 'http://localhost:9090/api/orders'; // Replace with your actual API endpoint
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', // Set the appropriate content type
+      // Add any additional headers if needed
+    },
+    body: JSON.stringify(orderData), // Convert your data to JSON
+  };
+
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Fetch error:', error);
+  }
+}
+
+// Example order data
+const orderData = {
+  "eventId": "1",
+	"ticketCategoryId": "2",
+	"numberOfTickets": "3"
+};
+
+// Call the placeOrder function with the order data
+placeOrder(orderData).then(data => {
+  console.log('Order placed:', data);
+  // Process the response data as needed
+});
+
+
 function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
-  mainContentDiv.innerHTML = getHomePageTemplate();
-  // Sample hardcoded event data
-  const eventData = {
-    id: 1,
-    description: 'Sample event description.',
-    img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    name: 'Sample Event',
-    date: '08.07.2023',
-    location:'Cluj-Napoca',
-    ticketCategories: [
-      { id: 1, description: 'General Admission' },
-      { id: 2, description: 'VIP' },
-    ],
-  };
-  // Create the event card element
-  const eventCard = document.createElement('div');
-  eventCard.classList.add('event-card'); 
-  // Create the event content markup
-  const contentMarkup = `
-  <header>
-    <h2 class="event-title text-2xl font-bold">${eventData.name}</h2>
-  </header>
-  <div class="content relative flex">
-    <img src="${eventData.img}" alt="${eventData.name}" class="event-image w-1/4 rounded object-cover mb-4">
-    <div class="event-details ml-4">
-      <p class="description text-gray-700">${eventData.description}</p>
-      <p class="date text-gray-700">${eventData.date}</p>
-      <p class="location text-gray-700">${eventData.location}</p>
-      <button class="btn mt-4" id="showDropdowns">Buy tickets</button>
-      <div class="dropdowns hidden absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
-        <select class="ticket-category mb-2">
-          <option value="general">General Admission</option>
-          <option value="vip">VIP</option>
-        </select>
-        <select class="ticket-quantity">
-          <option value="1">1 Ticket</option>
-          <option value="2">2 Tickets</option>
-          <option value="3">3 Tickets</option>
-          <!-- Add more options as needed -->
-        </select>
-        <button class="btn btn-primary mt-2">Purchase</button>
-      </div>
-    </div>
-  </div>
-`;
+  mainContentDiv.innerHTML = ''; // Clear the main content
 
-// JavaScript to handle dropdown toggle
-document.addEventListener('DOMContentLoaded', () => {
-  const showDropdownsButton = document.getElementById('showDropdowns');
-  const dropdowns = document.querySelector('.dropdowns');
+  fetchEvents().then(data => {
+    console.log('Fetched data:', data);
 
-  showDropdownsButton.addEventListener('click', () => {
-    dropdowns.classList.toggle('hidden');
+  
+
+    const eventsContainer = document.createElement('div');
+    eventsContainer.classList.add('events');
+
+    data.forEach(eventData => {
+      const eventCard = document.createElement('div');
+      eventCard.classList.add('event-card');
+
+      const contentMarkup = `
+        <header>
+          <h2 class="event-title text-2xl font-bold">${eventData.eventName}</h2>
+        </header>
+        <div class="content relative flex">
+          
+          <div class="event-details ml-4">
+            <p class="description text-gray-700">${eventData.eventDescription}</p>
+    
+            <button class="btn mt-4" id="showDropdowns">Buy tickets</button>
+            <div class="dropdowns hidden absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
+              <select class="ticket-category mb-2">
+                <option value="general">General Admission</option>
+                <option value="vip">VIP</option>
+              </select>
+              <select class="ticket-quantity">
+                <option value="1">1 Ticket</option>
+                <option value="2">2 Tickets</option>
+                <option value="3">3 Tickets</option>
+                <!-- Add more options as needed -->
+              </select>
+              <button class="btn btn-primary mt-2">Purchase</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      eventCard.innerHTML = contentMarkup;
+      eventsContainer.appendChild(eventCard);
+
+      const showDropdownsButton = eventCard.querySelector('#showDropdowns');
+      const dropdowns = eventCard.querySelector('.dropdowns');
+   
+      showDropdownsButton.addEventListener('click', () => {
+        dropdowns.classList.toggle('hidden');
+      });
+   
+    });
+
+    mainContentDiv.appendChild(eventsContainer);
   });
-});
-  eventCard.innerHTML = contentMarkup;
-  const eventsContainer = document.querySelector('.events');
-  // Append the event card to the events container
-  eventsContainer.appendChild(eventCard);
 }
+
 
 function renderOrdersPage(categories) {
   const mainContentDiv = document.querySelector('.main-content-component');
