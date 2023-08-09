@@ -70,20 +70,20 @@ async function placeOrder(orderData) {
     "numberOfTickets": "3"
   };
   console.log('order', orderData1);
-  const url = 'http://localhost:9090/api/orders'; // Replace with your actual API endpoint
+  const url = 'http://localhost:9090/api/orders'; 
   const options = {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json', // Set the appropriate content type
-      // Add any additional headers if needed
+      'Content-Type': 'application/json', 
+      
     },
-    body: JSON.stringify(orderData1), // Convert your data to JSON
+    body: JSON.stringify(orderData1), 
   };
 
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      const errorMessage = await response.text(); // Get the error message from the response body
+      const errorMessage = await response.text(); 
       throw new Error(`Network response was not ok: ${response.status} - ${errorMessage}`);
     }
     const data = await response.json();
@@ -101,15 +101,15 @@ const orderData = {
 };
 
 
-// Call the placeOrder function with the order data
+
 placeOrder(orderData).then(data => {
   console.log('Order placed:', data);
-  // Process the response data as needed
+  
 });
 
 function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
-  mainContentDiv.innerHTML = ''; // Clear the main content
+  mainContentDiv.innerHTML = ''; 
 
   fetchEvents().then(data => {
     console.log('Fetched data:', data);
