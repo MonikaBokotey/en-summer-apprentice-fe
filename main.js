@@ -14,6 +14,7 @@ function getHomePageTemplate() {
   `;
 }
 
+
 function getOrdersPageTemplate() {
   return `
     <div id="content">
@@ -115,10 +116,15 @@ placeOrder(orderData).then(data => {
 
 function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
-  mainContentDiv.innerHTML = ''; 
+  mainContentDiv.innerHTML = ''+'<div class="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>'; 
+
+  const loader = document.querySelector('.loader');
+  
 
   fetchEvents().then(data => {
     console.log('Fetched data:', data);
+
+    loader.style.display = 'none';
 
     const eventsContainer = document.createElement('div');
     eventsContainer.classList.add('events');
@@ -206,11 +212,59 @@ purchaseButton.addEventListener('click', async () => {
   });
 }
 
+async function fetchOrders(){
+  const response = await fetch('https://localhost:7214/api/Order/GetAll');
+  const data=await response.json();
+  return data;
+}
 
-function renderOrdersPage(categories) {
+function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
+
+  fetchOrders().then(ordersData => {
+    console.log('Fetched orders:', ordersData);
+
+    const ordersContainer = document.createElement('div');
+    ordersContainer.classList.add('orders-container');
+
+    ordersData.forEach(order => {
+      const orderCard = document.createElement('div');
+      orderCard.classList.add('order-card');
+
+      const orderHtml = `
+        <div class="order-details">
+          <div class="order-field">
+            <span class="field-name">Order ID:</span>
+            <span class="field-value">${order.orderId}</span>
+          </div>
+          <div class="order-field">
+            <span class="field-name">Number of Tickets:</span>
+            <span class="field-value">${order.numberOfTickets}</span>
+          </div>
+          <div class="order-field">
+            <span class="field-name">Ordered At:</span>
+            <span class="field-value">${order.orderedAt}</span>
+          </div>
+          <div class="order-field">
+            <span class="field-name">Total Price:</span>
+            <span class="field-value">${order.totalPrice}</span>
+          </div>
+          <div class="order-buttons">
+            <button class="edit-button">Edit</button>
+            <button class="delete-button">Delete</button>
+          </div>
+        </div>
+      `;
+
+      orderCard.innerHTML = orderHtml;
+      ordersContainer.appendChild(orderCard);
+    });
+
+    mainContentDiv.appendChild(ordersContainer);
+  });
 }
+
 // Render the event card based on eventData
 function renderEventCard(eventData) {
   const eventCard = document.createElement('div');
