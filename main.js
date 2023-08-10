@@ -64,12 +64,12 @@ async function fetchEvents(){
 }
 
 async function placeOrder(orderData) {
-  const orderData1 = {
-    "eventId": "1",
-    "ticketCategoryId": "2",
-    "numberOfTickets": "3"
-  };
-  console.log('order', orderData1);
+  // const orderData1 = {
+  //   "eventId": "1",
+  //   "ticketCategoryId": "2",
+  //   "numberOfTickets": "3"
+  // };
+  console.log('order', orderData);
   const url = 'http://localhost:9090/api/orders'; 
   const options = {
     method: 'POST',
@@ -77,7 +77,7 @@ async function placeOrder(orderData) {
       'Content-Type': 'application/json', 
       
     },
-    body: JSON.stringify(orderData1), 
+    body: JSON.stringify(orderData), 
   };
 
   try {
@@ -133,8 +133,8 @@ function renderHomePage() {
             <button class="btn mt-4" id="showDropdowns">Buy tickets</button>
             <div class="dropdowns hidden absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
               <select class="ticket-category mb-2">
-                <option value="general">General Admission</option>
-                <option value="vip">VIP</option>
+                <option value="Standard">Standard</option>
+                <option value="VIP">VIP</option>
               </select>
               <select class="ticket-quantity">
                 <option value="1">1 Ticket</option>
@@ -161,12 +161,27 @@ function renderHomePage() {
       // Attach the event listener to the current "Purchase" button
       const purchaseButton = eventCard.querySelector('.btn.btn-primary');
       purchaseButton.addEventListener('click', async () => {
+        const selectedCategoryValue = eventCard.querySelector('.ticket-category').value;
+        console.log('selected value:', selectedCategoryValue);
+        let selectedCategoryId;
+      
+        if (selectedCategoryValue === 'Standard') {
+          selectedCategoryId = 1;
+        } else if (selectedCategoryValue === 'VIP') {
+          selectedCategoryId = 2;
+        } else {
+          // Handle other cases or set a default value if needed
+          selectedCategoryId = 0;
+        }
+      
+        const selectedQuantity = parseInt(eventCard.querySelector('.ticket-quantity').value, 10);
+      
         const orderData = {
           eventId: eventData.eventId,
-          ticketCategoryId: eventCard.querySelector('.ticket-category').value,
-          numberOfTickets: eventCard.querySelector('.ticket-quantity').value,
+          ticketCategoryId: selectedCategoryId,
+          numberOfTickets: selectedQuantity,
         };
-
+      
         try {
           const response = await placeOrder(orderData);
           console.log('Order placed:', response);
@@ -175,6 +190,8 @@ function renderHomePage() {
           console.error('Error placing order:', error);
         }
       });
+      
+      
     });
 
     mainContentDiv.appendChild(eventsContainer);
