@@ -63,6 +63,12 @@ async function fetchEvents(){
   return data;
 }
 
+async function getTicketId(eventId, description){
+  const response = await fetch(`https://localhost:7214/api/TicketCategory/GetByOrderId?event_id=${eventId}&description=${description}`);
+  const data=await response.json();
+  return data;
+}
+
 async function placeOrder(orderData) {
   // const orderData1 = {
   //   "eventId": "1",
@@ -160,36 +166,38 @@ function renderHomePage() {
    
       // Attach the event listener to the current "Purchase" button
       const purchaseButton = eventCard.querySelector('.btn.btn-primary');
-      purchaseButton.addEventListener('click', async () => {
-        const selectedCategoryValue = eventCard.querySelector('.ticket-category').value;
-        console.log('selected value:', selectedCategoryValue);
-        let selectedCategoryId;
-      
-        if (selectedCategoryValue === 'Standard') {
-          selectedCategoryId = 1;
-        } else if (selectedCategoryValue === 'VIP') {
-          selectedCategoryId = 2;
-        } else {
-          // Handle other cases or set a default value if needed
-          selectedCategoryId = 0;
-        }
-      
-        const selectedQuantity = parseInt(eventCard.querySelector('.ticket-quantity').value, 10);
-      
-        const orderData = {
-          eventId: eventData.eventId,
-          ticketCategoryId: selectedCategoryId,
-          numberOfTickets: selectedQuantity,
-        };
-      
-        try {
-          const response = await placeOrder(orderData);
-          console.log('Order placed:', response);
-          // Process the response data as needed
-        } catch (error) {
-          console.error('Error placing order:', error);
-        }
-      });
+purchaseButton.addEventListener('click', async () => {
+  const selectedCategoryValue = eventCard.querySelector('.ticket-category').value;
+  console.log('selected value:', selectedCategoryValue);
+
+  let selectedCategoryId;
+
+  const event_id = eventData.eventId;
+  try {
+    selectedCategoryId = await getTicketId(event_id, selectedCategoryValue);
+    console.log('Retrieved ticketCategoryId:', selectedCategoryId);
+  } catch (error) {
+    console.error('Error retrieving ticketCategoryId:', error);
+    return;
+  }
+
+  const selectedQuantity = parseInt(eventCard.querySelector('.ticket-quantity').value, 10);
+
+  const orderData = {
+    eventId: eventData.eventId,
+    ticketCategoryId: selectedCategoryId,
+    numberOfTickets: selectedQuantity,
+  };
+
+  try {
+    const response = await placeOrder(orderData);
+    console.log('Order placed:', response);
+    // Process the response data as needed
+  } catch (error) {
+    console.error('Error placing order:', error);
+  }
+});
+
       
       
     });
