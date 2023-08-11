@@ -218,6 +218,12 @@ async function fetchOrders(){
   return data;
 }
 
+async function getEventNameFromOrder(eventId) {
+  const response = await fetch(`https://localhost:7214/api/Order/GetEventNameByOrderId?event_id=${eventId}`);
+  const eventName = await response.text(); // Retrieve the event name as plain text
+  return eventName;
+}
+
 function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
@@ -228,15 +234,17 @@ function renderOrdersPage() {
     const ordersContainer = document.createElement('div');
     ordersContainer.classList.add('orders-container');
 
-    ordersData.forEach(order => {
+    ordersData.forEach(async order => {
+      const eventName = await getEventNameFromOrder(order.orderId);
+
       const orderCard = document.createElement('div');
       orderCard.classList.add('order-card');
 
       const orderHtml = `
         <div class="order-details">
           <div class="order-field">
-            <span class="field-name">Order ID:</span>
-            <span class="field-value">${order.orderId}</span>
+            <span class="field-name">Event Name:</span>
+            <span class="field-value">${eventName}</span>
           </div>
           <div class="order-field">
             <span class="field-name">Number of Tickets:</span>
@@ -264,6 +272,7 @@ function renderOrdersPage() {
     mainContentDiv.appendChild(ordersContainer);
   });
 }
+
 
 // Render the event card based on eventData
 function renderEventCard(eventData) {
