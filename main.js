@@ -1,3 +1,5 @@
+
+import { renderEventCard,fetchEvents,getTicketId,placeOrder } from './eventUtils';
 // Navigate to a specific URL
 function navigateTo(url) {
   history.pushState(null, null, url);
@@ -55,162 +57,225 @@ function setupPopstateEvent() {
 function setupInitialPage() {
   const initialUrl = window.location.pathname;
   renderContent(initialUrl);
+
 }
 
-
-async function fetchEvents(){
-  const response = await fetch('https://localhost:7214/api/Event/GetAll');
-  const data=await response.json();
-  return data;
-}
-
-async function getTicketId(eventId, description){
-  const response = await fetch(`https://localhost:7214/api/TicketCategory/GetByOrderId?event_id=${eventId}&description=${description}`);
-  const data=await response.json();
-  return data;
-}
-
-async function placeOrder(orderData) {
-  // const orderData1 = {
-  //   "eventId": "1",
-  //   "ticketCategoryId": "2",
-  //   "numberOfTickets": "3"
-  // };
-  console.log('order', orderData);
-  const url = 'http://localhost:9090/api/orders'; 
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json', 
-      
-    },
-    body: JSON.stringify(orderData), 
-  };
-
-  try {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      const errorMessage = await response.text(); 
-      throw new Error(`Network response was not ok: ${response.status} - ${errorMessage}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Fetch error:', error);
+async function filterAndRenderEvents(searchValue) {
+  if (searchValue.trim() === '') {
+    renderHomePage(); // Display all events
+    return;
   }
+
+  const events = await fetchEvents();
+  const filteredEvents = events.filter(event => event.eventName.toLowerCase().includes(searchValue.toLowerCase()));
+  renderFilteredEvents(filteredEvents);
 }
 
-// Example order data
-const orderData = {
-  "eventId": "1",
-	"ticketCategoryId": "2",
-	"numberOfTickets": "3"
-};
 
-
-
-placeOrder(orderData).then(data => {
-  console.log('Order placed:', data);
-  
-});
-
-function renderHomePage() {
+function renderFilteredEvents(events) {
   const mainContentDiv = document.querySelector('.main-content-component');
-  mainContentDiv.innerHTML = ''+'<div class="loader"><i class="fa-solid fa-spinner fa-spin"></i></div>'; 
+  mainContentDiv.innerHTML = '';
 
-  const loader = document.querySelector('.loader');
-  
+  const searchInputHtml = renderSearch(); // Move this line outside
+  mainContentDiv.insertAdjacentHTML('beforeend', searchInputHtml);
 
-  fetchEvents().then(data => {
-    console.log('Fetched data:', data);
+  const eventsContainer = document.createElement('div');
+  eventsContainer.classList.add('events');
 
-    loader.style.display = 'none';
+  events.forEach(eventData => {
+    const eventCard = renderEventCard(eventData);
+    eventsContainer.appendChild(eventCard);
+  });
+
+  mainContentDiv.appendChild(eventsContainer);
+}
+
+function renderSearch() {
+  return `
+    <div id="filter" class="mb-4">
+      <label for="name" class="block text-gray-700 font-bold">Search by Event Name:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Enter event name..."
+        class="mt-1 p-2 border rounded w-full focus:outline-none focus:ring focus:border-blue-300"
+      />
+    </div>
+  `;
+}
+
+
+async function fetchEventByVenueAndType(venueId,eventType){
+  const response = await fetch(`http://localhost:9090/api/event?venueId=${venueId}&eventType=${eventType}`);
+  const data=await response.json();
+  return data;
+}
+
+
+async function fetchEventById(eventId){
+  const response = await fetch(`https://localhost:7214/api/Event/GetByEventId?id=${eventId}`);
+  const data=await response.json();
+  return data;
+}
+
+async function renderFilteredPage(venueId, eventType){
+  const mainContentDiv = document.querySelector('.main-content-component');
+
+  // Fetch events based on venue and event type
+  const eventsByVenueAndType = await fetchEventByVenueAndType(venueId, eventType);
+
+  for (const eventData of eventsByVenueAndType) {
+    // Fetch each event by its eventId
+    const event = await fetchEventById(eventData.eventId);
 
     const eventsContainer = document.createElement('div');
     eventsContainer.classList.add('events');
 
-    data.forEach(eventData => {
-      const eventCard = document.createElement('div');
-      eventCard.classList.add('event-card');
+    const eventCard = renderEventCard(event);
+    eventsContainer.appendChild(eventCard);
 
-      const contentMarkup = `
-        <header>
-          <h2 class="event-title text-2xl font-bold">${eventData.eventName}</h2>
-        </header>
-        <div class="content relative flex">
-          
-          <div class="event-details ml-4">
-            <p class="description text-gray-700">${eventData.eventDescription}</p>
+    mainContentDiv.innerHTML = ''; // Clear previous content
+    mainContentDiv.appendChild(eventsContainer);
+  }
+}
+
+
+function renderEventFilterButtons() {
+  const filterButton = document.createElement('div');
+
+  const filterHtml = `
+//   <style>
+//   /* Your existing styles here */
+
+//   #event-filter {
+//     /* New positioning styles */
+//     position: absolute;
+//     top: 20px;
+//     right: 20px;
+//     /* Other existing styles */
+//     border: 1px solid #ccc;
+//     padding: 10px;
+//     background-color: #f9f9f9;
+//   }
+
+//   /* Rest of your existing styles */
+// </style>
+
+    <div id="event-filter">
+      
+      <button class="btn mt-4" id="showDropdownsFilter">Filter by</button>
+      <div class="filter-section">
+        <h4>Venue</h4>
+        <label>
+          <input type="radio" name="venue" value="Stadion">
+          Stadion
+        </label>
+        <label>
+          <input type="radio" name="venue" value="Castle">
+          Castle
+        </label>
+        <label>
+        <input type="radio" name="venue" value="Park">
+        Park
+      </label>
+      </div>
+      <div class="filter-section">
+        <h4>Type</h4>
+        <label>
+          <input type="radio" name="type" value="Festival de muzica">
+          Festival de muzica
+        </label>
+        <label>
+          <input type="radio" name="type" value="Sport">
+          Sport
+        </label>
+        <label>
+          <input type="radio" name="type" value="Bauturi">
+          Bauturi
+        </label>
+      </div>
+      <button id="apply-filters">Apply Filters</button>
+    </div>
+  `;
+
+  return filterHtml;
+
+  
+}
+
+
+function setupFilterButton() {
+  const applyFiltersButton = document.querySelector('#apply-filters');
+
+  applyFiltersButton.addEventListener('click', async () => {
+    const selectedVenue = document.querySelector('input[name="venue"]:checked')?.value;
+    const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+
+    let venueId = null;
+    // Map venue names to their IDs
+    const venueMap = {
+      Stadion: 1,
+      Castle: 2,
+      Park: 3,
+    };
+
+    if (selectedVenue in venueMap) {
+      venueId = venueMap[selectedVenue];
+    }
+    console.log('selected venue', venueId);
+    console.log('selected type', selectedType);
+
+    // Fetch and render filtered events
+    await renderFilteredPage(venueId, selectedType);
+
+    console.log('Filtered events rendered');
+  });
+}
+
+function renderHomePage() {
+  const mainContentDiv = document.querySelector('.main-content-component');
+  mainContentDiv.innerHTML = '';
+
+  const searchInputHtml = renderSearch();
+  mainContentDiv.insertAdjacentHTML('beforeend', searchInputHtml);
+
+  const renderVenueAndType = renderEventFilterButtons();
+  mainContentDiv.insertAdjacentHTML('beforeend', renderVenueAndType);
+
+  const filterInput = document.querySelector('#name');
+  if (filterInput) {
+    filterInput.addEventListener('keyup', () => {
+      const searchValue = filterInput.value.trim().toLowerCase();
+      console.log('Search value:', searchValue);
+      filterAndRenderEvents(searchValue);
+    });
+  }
+
+  const applyFiltersButton = document.querySelector('#apply-filters');
+  if (applyFiltersButton) {
+    applyFiltersButton.addEventListener('click', () => {
     
-            <button class="btn mt-4" id="showDropdowns">Buy tickets</button>
-            <div class="dropdowns hidden absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
-              <select class="ticket-category mb-2">
-                <option value="Standard">Standard</option>
-                <option value="VIP">VIP</option>
-              </select>
-              <select class="ticket-quantity">
-                <option value="1">1 Ticket</option>
-                <option value="2">2 Tickets</option>
-                <option value="3">3 Tickets</option>
-                <!-- Add more options as needed -->
-              </select>
-              <button class="btn btn-primary mt-2">Purchase</button>
-            </div>
-          </div>
-        </div>
-      `;
+      setupFilterButton();
+      
+    });
+  }
 
-      eventCard.innerHTML = contentMarkup;
+  // Fetch and render events here
+  fetchEvents().then(data => {
+    const eventsContainer = document.createElement('div');
+    eventsContainer.classList.add('events-grid');
+
+    data.forEach(eventData => {
+      const eventCard = renderEventCard(eventData);
       eventsContainer.appendChild(eventCard);
-
-      const showDropdownsButton = eventCard.querySelector('#showDropdowns');
-      const dropdowns = eventCard.querySelector('.dropdowns');
-   
-      showDropdownsButton.addEventListener('click', () => {
-        dropdowns.classList.toggle('hidden');
-      });
-   
-      // Attach the event listener to the current "Purchase" button
-      const purchaseButton = eventCard.querySelector('.btn.btn-primary');
-purchaseButton.addEventListener('click', async () => {
-  const selectedCategoryValue = eventCard.querySelector('.ticket-category').value;
-  console.log('selected value:', selectedCategoryValue);
-
-  let selectedCategoryId;
-
-  const event_id = eventData.eventId;
-  try {
-    selectedCategoryId = await getTicketId(event_id, selectedCategoryValue);
-    console.log('Retrieved ticketCategoryId:', selectedCategoryId);
-  } catch (error) {
-    console.error('Error retrieving ticketCategoryId:', error);
-    return;
-  }
-
-  const selectedQuantity = parseInt(eventCard.querySelector('.ticket-quantity').value, 10);
-
-  const orderData = {
-    eventId: eventData.eventId,
-    ticketCategoryId: selectedCategoryId,
-    numberOfTickets: selectedQuantity,
-  };
-
-  try {
-    const response = await placeOrder(orderData);
-    console.log('Order placed:', response);
-    // Process the response data as needed
-  } catch (error) {
-    console.error('Error placing order:', error);
-  }
-});
-
-      
-      
     });
 
     mainContentDiv.appendChild(eventsContainer);
   });
 }
+
+
 
 async function fetchOrders(){
   const response = await fetch('https://localhost:7214/api/Order/GetAll');
@@ -218,81 +283,68 @@ async function fetchOrders(){
   return data;
 }
 
+
 async function getEventNameFromOrder(eventId) {
   const response = await fetch(`https://localhost:7214/api/Order/GetEventNameByOrderId?event_id=${eventId}`);
-  const eventName = await response.text(); // Retrieve the event name as plain text
+  const eventName = await response.text(); 
   return eventName;
 }
+
 
 function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
 
-  fetchOrders().then(ordersData => {
+  fetchOrders().then(async ordersData => {
     console.log('Fetched orders:', ordersData);
 
     const ordersContainer = document.createElement('div');
     ordersContainer.classList.add('orders-container');
 
-    ordersData.forEach(async order => {
+    for (const order of ordersData) {
       const eventName = await getEventNameFromOrder(order.orderId);
+      const eventCard = renderOrderCard(eventName, order);
 
-      const orderCard = document.createElement('div');
-      orderCard.classList.add('order-card');
-
-      const orderHtml = `
-        <div class="order-details">
-          <div class="order-field">
-            <span class="field-name">Event Name:</span>
-            <span class="field-value">${eventName}</span>
-          </div>
-          <div class="order-field">
-            <span class="field-name">Number of Tickets:</span>
-            <span class="field-value">${order.numberOfTickets}</span>
-          </div>
-          <div class="order-field">
-            <span class="field-name">Ordered At:</span>
-            <span class="field-value">${order.orderedAt}</span>
-          </div>
-          <div class="order-field">
-            <span class="field-name">Total Price:</span>
-            <span class="field-value">${order.totalPrice}</span>
-          </div>
-          <div class="order-buttons">
-            <button class="edit-button">Edit</button>
-            <button class="delete-button">Delete</button>
-          </div>
-        </div>
-      `;
-
-      orderCard.innerHTML = orderHtml;
-      ordersContainer.appendChild(orderCard);
-    });
+      ordersContainer.appendChild(eventCard);
+    }
 
     mainContentDiv.appendChild(ordersContainer);
   });
 }
 
-
-// Render the event card based on eventData
-function renderEventCard(eventData) {
+function renderOrderCard(eventName, orderData) {
   const eventCard = document.createElement('div');
   eventCard.classList.add('event-card');
 
-  const contentMarkup = `
-    <header>
-      <h2 class="event-title text-2xl font-bold">${eventData.name}</h2>
-    </header>
-    <div class="content">
-      <img src="${eventData.img}" alt="${eventData.name}" class="event-image w-full height-200 rounded object-cover mb-4">
-      <p class="description text-gray-700">${eventData.description}</p>
+  const orderHtml = `
+    <div class="order-details">
+      <div class="order-field">
+        <span class="field-name">Event Name:</span>
+        <span class="field-value">${eventName}</span>
+      </div>
+      <div class="order-field">
+        <span class="field-name">Number of Tickets:</span>
+        <span class="field-value">${orderData.numberOfTickets}</span>
+      </div>
+      <div class="order-field">
+        <span class="field-name">Ordered At:</span>
+        <span class="field-value">${orderData.orderedAt}</span>
+      </div>
+      <div class="order-field">
+        <span class="field-name">Total Price:</span>
+        <span class="field-value">${orderData.totalPrice}</span>
+      </div>
+      <div class="order-buttons">
+        <button class="edit-button">Edit</button>
+        <button class="delete-button">Delete</button>
+      </div>
     </div>
   `;
 
-  eventCard.innerHTML = contentMarkup;
-  const eventsContainer = document.querySelector('.events');
-  eventsContainer.appendChild(eventCard);
+  eventCard.innerHTML = orderHtml;
+  return eventCard;
 }
+
 
 // Render content based on URL
 function renderContent(url) {

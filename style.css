@@ -148,3 +148,31 @@ h1 {
   font-size: 40px;
   color: #007bff; /* You can adjust the color */
 }
+
+#apply-filters {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#apply-filters:hover {
+  background-color: #0056b3;
+}
+
+.event-image img {
+  width: 200px; /* Set the desired width */
+  height: 150px; /* Set the desired height */
+  object-fit: cover; /* Maintain aspect ratio while filling the container */
+}
+
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* Adjust column width as needed */
+  gap: 20px; /* Adjust gap between event cards */
+}
+
