@@ -1,4 +1,4 @@
-
+//import {removeLoader,addLoader} from './loader.js';
 import { renderEventCard,fetchEvents,getTicketId,placeOrder } from './eventUtils';
 // Navigate to a specific URL
 function navigateTo(url) {
@@ -327,9 +327,8 @@ function renderOrdersPage() {
     mainContentDiv.appendChild(ordersContainer);
   });
 }
-
-async function patchOrders(orderId, numberOfTickets, ticketCategoryId){
-  const response = await fetch('https://localhost:7214/api/Order/Patch');
+async function patchOrders(orderId, numberOfTickets, ticketCategoryId) {
+  const url = `https://localhost:7214/api/Order/Patch`; // Update with the correct URL
   const patchData = {
     orderId: orderId,
     numberOfTickets: numberOfTickets,
@@ -358,6 +357,7 @@ async function patchOrders(orderId, numberOfTickets, ticketCategoryId){
 }
 
 
+
 function renderOrderCard(eventName, orderData) {
   const eventCard = document.createElement('div');
   eventCard.classList.add('event-card');
@@ -369,7 +369,10 @@ function renderOrderCard(eventName, orderData) {
   } else if ([5, 6, 7].includes(orderData.ticketCategoryId)) {
     ticketCategory = 'VIP';
   }
-
+  const ticketCategoryOptions = `
+  <option value="Standard" ${ticketCategory === 'Standard' ? 'selected' : ''}>Standard</option>
+  <option value="VIP" ${ticketCategory === 'VIP' ? 'selected' : ''}>VIP</option>
+`;
   
 
   const orderHtml = `
@@ -379,13 +382,15 @@ function renderOrderCard(eventName, orderData) {
         <span class="field-value">${eventName}</span>
       </div>
       <div class="order-field">
-        <span class="field-name">Ticket Category:</span>
-        <span class="field-value">${ticketCategory}</span>
-      </div>
-      <div class="order-field">
-        <span class="field-name">Number of Tickets:</span>
-        <span class="field-value">${orderData.numberOfTickets}</span>
-      </div>
+      <span class="field-name">Ticket Category:</span>
+      <span class="field-value" id="ticketCategory">${ticketCategory}</span>
+      <select class="edit-input" id="editTicketCategory" style="display: none">${ticketCategoryOptions}</select>
+    </div>
+    <div class="order-field">
+      <span class="field-name">Number of Tickets:</span>
+      <span class="field-value" id="numberOfTickets">${orderData.numberOfTickets}</span>
+      <input type="number" class="edit-input" id="editNumberOfTickets" style="display: none" value="${orderData.numberOfTickets}" />
+    </div>
       <div class="order-field">
         <span class="field-name">Ordered At:</span>
         <span class="field-value">${orderData.orderedAt}</span>
@@ -398,6 +403,7 @@ function renderOrderCard(eventName, orderData) {
         <button class="edit-button">Edit</button>
         <button class="delete-button">Delete</button>
       </div>
+      
     </div>
   `;
 
@@ -416,15 +422,72 @@ function renderOrderCard(eventName, orderData) {
     }
   });
 
-
   const editButton = eventCard.querySelector('.edit-button');
   editButton.addEventListener('click', () => {
-    // Gather the necessary data from the order card
- 
+    const fieldDisplayCategory = eventCard.querySelector('.field-value#ticketCategory');
+    const selectDisplayCategory = eventCard.querySelector('.edit-input#editTicketCategory');
+  
+    const fieldDisplayTickets = eventCard.querySelector('.field-value#numberOfTickets');
+    const inputDisplayTickets = eventCard.querySelector('.edit-input#editNumberOfTickets');
+
+    fieldDisplayCategory.style.display = 'none';
+    selectDisplayCategory.style.display = 'inline-block';
+    selectDisplayCategory.focus();
+
+    fieldDisplayTickets.style.display = 'none';
+    inputDisplayTickets.style.display = 'inline-block';
+    inputDisplayTickets.focus();
+
+    editButton.textContent = 'Save';
+
+    const saveClickListener = async () => {
+      const newCategoryValue = selectDisplayCategory.value;
+      const newTicketValue = inputDisplayTickets.value;
+
+      fieldDisplayCategory.textContent = newCategoryValue;
+      selectDisplayCategory.style.display = 'none';
+      fieldDisplayCategory.style.display = 'inline-block';
+
+      fieldDisplayTickets.textContent = newTicketValue;
+      inputDisplayTickets.style.display = 'none';
+      fieldDisplayTickets.style.display = 'inline-block';
+
+      editButton.textContent = 'Edit';
+
+      // Update the orderData with the new values
+      if (newCategoryValue === 'Standard') {
+        if(orderData.eventId===1)
+        orderData.ticketCategoryId = 1; 
+      else if (orderData.eventId===2)
+      orderData.ticketCategoryId = 2; 
+      else if (orderData.eventId===3)
+      orderData.ticketCategoryId = 3; 
+      else if (orderData.eventId===4)
+      orderData.ticketCategoryId = 4; 
+
+      } else if (newCategoryValue === 'VIP') {
+        if(orderData.eventId===1)
+        orderData.ticketCategoryId = 5; 
+        else if (orderData.eventId===2)
+        orderData.ticketCategoryId = 6; 
+        else if (orderData.eventId===3)
+        orderData.ticketCategoryId = 7; 
+
+      }
+
+      orderData.numberOfTickets = newTicketValue;
+
+      try {
+        const patchResponse = await patchOrders(orderData.orderId, newTicketValue, orderData.ticketCategoryId);
+        console.log('Order patched successfully:', patchResponse);
+      } catch (error) {
+        console.error('Error patching order:', error);
+      }
+    };
+
+    editButton.removeEventListener('click', saveClickListener); // Remove previous listener if exists
+    editButton.addEventListener('click', saveClickListener);
   });
-
-
-
   return eventCard;
 }
 
