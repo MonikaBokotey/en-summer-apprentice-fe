@@ -251,6 +251,7 @@ function renderHomePage() {
       filterAndRenderEvents(searchValue);
     });
   }
+  
 
   const applyFiltersButton = document.querySelector('#apply-filters');
   if (applyFiltersButton) {
@@ -275,7 +276,22 @@ function renderHomePage() {
   });
 }
 
+async function deleteEventById(orderId) {
+  try {
+    const response = await fetch(`https://localhost:7214/api/Order/Delete?id=${orderId}`, {
+      method: 'DELETE',
+    });
 
+    if (response.ok) {
+      return { success: true, message: 'Event deleted successfully.' };
+    } else {
+      const errorData = await response.json();
+      return { success: false, message: errorData.message };
+    }
+  } catch (error) {
+    return { success: false, message: 'An error occurred while deleting the event.' };
+  }
+}
 
 async function fetchOrders(){
   const response = await fetch('https://localhost:7214/api/Order/GetAll');
@@ -312,15 +328,59 @@ function renderOrdersPage() {
   });
 }
 
+async function patchOrders(orderId, numberOfTickets, ticketCategoryId){
+  const response = await fetch('https://localhost:7214/api/Order/Patch');
+  const patchData = {
+    orderId: orderId,
+    numberOfTickets: numberOfTickets,
+    ticketCategoryId: ticketCategoryId
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(patchData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Patch request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error patching order:', error);
+    throw error;
+  }
+}
+
+
 function renderOrderCard(eventName, orderData) {
   const eventCard = document.createElement('div');
   eventCard.classList.add('event-card');
+
+  // Determine ticket category based on ticketCategoryId
+  let ticketCategory = '';
+  if ([1, 2, 3, 4].includes(orderData.ticketCategoryId)) {
+    ticketCategory = 'Standard';
+  } else if ([5, 6, 7].includes(orderData.ticketCategoryId)) {
+    ticketCategory = 'VIP';
+  }
+
+  
 
   const orderHtml = `
     <div class="order-details">
       <div class="order-field">
         <span class="field-name">Event Name:</span>
         <span class="field-value">${eventName}</span>
+      </div>
+      <div class="order-field">
+        <span class="field-name">Ticket Category:</span>
+        <span class="field-value">${ticketCategory}</span>
       </div>
       <div class="order-field">
         <span class="field-name">Number of Tickets:</span>
@@ -341,9 +401,35 @@ function renderOrderCard(eventName, orderData) {
     </div>
   `;
 
-  eventCard.innerHTML = orderHtml;
+
+  eventCard.innerHTML = orderHtml; // Set the HTML content first
+  
+  // Now query for the delete button element
+  const deleteButton = eventCard.querySelector('.delete-button');
+  deleteButton.addEventListener('click', async () => {
+    const deletionResult = await deleteEventById(orderData.orderId);
+    if (deletionResult.success) {
+      eventCard.remove();
+      console.log('successful deletion')
+    } else {
+      console.error(deletionResult.message);
+    }
+  });
+
+
+  const editButton = eventCard.querySelector('.edit-button');
+  editButton.addEventListener('click', () => {
+    // Gather the necessary data from the order card
+ 
+  });
+
+
+
   return eventCard;
 }
+
+
+
 
 
 // Render content based on URL
