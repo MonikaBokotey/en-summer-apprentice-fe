@@ -76,7 +76,7 @@ function renderFilteredEvents(events) {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = '';
 
-  const searchInputHtml = renderSearch(); // Move this line outside
+  const searchInputHtml = renderSearch(); 
   mainContentDiv.insertAdjacentHTML('beforeend', searchInputHtml);
 
   const eventsContainer = document.createElement('div');
@@ -94,13 +94,21 @@ function renderSearch() {
   return `
     <div id="filter" class="mb-4">
       <label for="name" class="block text-gray-700 font-bold">Search by Event Name:</label>
-      <input
-        type="text"
-        id="name"
-        name="name"
-        placeholder="Enter event name..."
-        class="mt-1 p-2 border rounded w-full focus:outline-none focus:ring focus:border-blue-300"
-      />
+      <div class="flex">
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter event name..."
+          class="mt-1 p-2 border rounded-l w-full focus:outline-none focus:ring focus:border-blue-300"
+        />
+        <button
+          id="searchButton"
+          class="bg-blue-500 text-black p-2 rounded-r focus:outline-none focus:ring focus:border-blue-300"
+        >
+          Search
+        </button>
+      </div>
     </div>
   `;
 }
@@ -242,16 +250,17 @@ function renderHomePage() {
 
   const renderVenueAndType = renderEventFilterButtons();
   mainContentDiv.insertAdjacentHTML('beforeend', renderVenueAndType);
-
-  const filterInput = document.querySelector('#name');
-  if (filterInput) {
-    filterInput.addEventListener('keyup', () => {
-      const searchValue = filterInput.value.trim().toLowerCase();
-      console.log('Search value:', searchValue);
-      filterAndRenderEvents(searchValue);
+  const searchButton = document.querySelector('#searchButton');
+  if (searchButton) {
+    searchButton.addEventListener('click', () => {
+      const filterInput = document.querySelector('#name');
+      if (filterInput) {
+        const searchValue = filterInput.value.trim().toLowerCase();
+        console.log('Search value:', searchValue);
+        filterAndRenderEvents(searchValue);
+      }
     });
   }
-  
 
   const applyFiltersButton = document.querySelector('#apply-filters');
   if (applyFiltersButton) {
