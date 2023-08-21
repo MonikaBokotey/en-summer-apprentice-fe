@@ -32,12 +32,13 @@ export function renderEventCard(eventData) {
               <option value="Standard">Standard</option>
               <option value="VIP">VIP</option>
             </select>
-            <select class="ticket-quantity">
-              <option value="1">1 Ticket</option>
-              <option value="2">2 Tickets</option>
-              <option value="3">3 Tickets</option>
-              
-            </select>
+            <input
+                type="number"
+                  class="ticket-quantity"
+                      min="1"
+                      max="20" 
+                   value="1"
+              />
             <button class="btn btn-primary mt-2">Purchase</button>
           </div>
         </div>

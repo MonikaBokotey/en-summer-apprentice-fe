@@ -93,6 +93,56 @@ function renderFilteredEvents(events) {
 function renderSearch() {
   return `
     <div id="filter" class="mb-4">
+    <style>
+  /* Style for the search container */
+  #filter {
+    margin-bottom: 1rem;
+  }
+
+  /* Style for the search label */
+  #filter label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  /* Style for the search input and button container */
+  #filter .flex {
+    display: flex;
+  }
+
+  /* Style for the search input */
+  #filter input[type="text"] {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem 0 0 0.25rem;
+    flex-grow: 1;
+    outline: none;
+    transition: border-color 0.3s ease-in-out;
+  }
+
+  #filter input[type="text"]:focus {
+    border-color: #3490dc;
+  }
+
+  /* Style for the search button */
+  #filter button {
+    background-color: #3490dc;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0 0.25rem 0.25rem 0;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease-in-out;
+  }
+
+  #filter button:hover {
+    background-color: #2779bd;
+  }
+</style>
+
       <label for="name" class="block text-gray-700 font-bold">Search by Event Name:</label>
       <div class="flex">
         <input
@@ -103,11 +153,12 @@ function renderSearch() {
           class="mt-1 p-2 border rounded-l w-full focus:outline-none focus:ring focus:border-blue-300"
         />
         <button
-          id="searchButton"
-          class="bg-blue-500 text-black p-2 rounded-r focus:outline-none focus:ring focus:border-blue-300"
-        >
-          Search
-        </button>
+        id="searchButton"
+        class="bg-blue-500 text-black p-2 rounded-r focus:outline-none focus:ring focus:border-blue-300"
+        style="background-color: #de6e14;"
+      >
+        Search
+      </button>
       </div>
     </div>
   `;
@@ -147,33 +198,14 @@ async function renderFilteredPage(venueId, eventType){
     mainContentDiv.appendChild(eventsContainer);
   }
 }
-
-
 function renderEventFilterButtons() {
   const filterButton = document.createElement('div');
 
   const filterHtml = `
-//   <style>
-//   /* Your existing styles here */
-
-//   #event-filter {
-//     /* New positioning styles */
-//     position: absolute;
-//     top: 20px;
-//     right: 20px;
-//     /* Other existing styles */
-//     border: 1px solid #ccc;
-//     padding: 10px;
-//     background-color: #f9f9f9;
-//   }
-
-//   /* Rest of your existing styles */
-// </style>
-
     <div id="event-filter">
-      
       <button class="btn mt-4" id="showDropdownsFilter">Filter by</button>
-      <div class="filter-section">
+      
+      <div class="filter-section" style="display: none;">
         <h4>Venue</h4>
         <label>
           <input type="radio" name="venue" value="Stadion">
@@ -184,11 +216,12 @@ function renderEventFilterButtons() {
           Castle
         </label>
         <label>
-        <input type="radio" name="venue" value="Park">
-        Park
-      </label>
+          <input type="radio" name="venue" value="Park">
+          Park
+        </label>
       </div>
-      <div class="filter-section">
+      
+      <div class="filter-section" style="display: none;">
         <h4>Type</h4>
         <label>
           <input type="radio" name="type" value="Festival de muzica">
@@ -203,15 +236,39 @@ function renderEventFilterButtons() {
           Bauturi
         </label>
       </div>
-      <button id="apply-filters">Apply Filters</button>
+      
+      <button id="apply-filters" style="display: none;">Apply Filters</button>
     </div>
   `;
 
   return filterHtml;
-
-  
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+  const showDropdownsFilterButton = document.getElementById('showDropdownsFilter');
+  const venueFilterSection = document.querySelector('.filter-section:nth-child(2)');
+  const typeFilterSection = document.querySelector('.filter-section:nth-child(3)');
+  const applyFiltersButton = document.getElementById('apply-filters');
+
+  if (showDropdownsFilterButton && venueFilterSection && typeFilterSection && applyFiltersButton) {
+    showDropdownsFilterButton.addEventListener('click', function () {
+      if (venueFilterSection.style.display === 'none') {
+        venueFilterSection.style.display = 'block';
+        typeFilterSection.style.display = 'block';
+        applyFiltersButton.style.display = 'block';
+      } else {
+        venueFilterSection.style.display = 'none';
+        typeFilterSection.style.display = 'none';
+        applyFiltersButton.style.display = 'none';
+      }
+    });
+  }
+});
+
+const filterContainer = document.getElementById('filter-container');
+if (filterContainer) {
+  filterContainer.innerHTML = renderEventFilterButtons();
+}
 
 function setupFilterButton() {
   const applyFiltersButton = document.querySelector('#apply-filters');
@@ -336,6 +393,7 @@ function renderOrdersPage() {
     mainContentDiv.appendChild(ordersContainer);
   });
 }
+
 async function patchOrders(orderId, numberOfTickets, ticketCategoryId) {
   const url = `https://localhost:7214/api/Order/Patch`; // Update with the correct URL
   const patchData = {
@@ -396,8 +454,8 @@ function renderOrderCard(eventName, orderData) {
       <select class="edit-input" id="editTicketCategory" style="display: none">${ticketCategoryOptions}</select>
     </div>
     <div class="order-field">
-      <span class="field-name">Number of Tickets:</span>
-      <span class="field-value" id="numberOfTickets">${orderData.numberOfTickets}</span>
+       <span class="field-name">Number of Tickets:</span>
+       <span class="field-value" id="numberOfTickets">${orderData.numberOfTickets}</span>
       <input type="number" class="edit-input" id="editNumberOfTickets" style="display: none" value="${orderData.numberOfTickets}" />
     </div>
       <div class="order-field">
@@ -410,6 +468,7 @@ function renderOrderCard(eventName, orderData) {
       </div>
       <div class="order-buttons">
         <button class="edit-button">Edit</button>
+        <button class="cancel-button" style="display: none;">Cancel</button>
         <button class="delete-button">Delete</button>
       </div>
       
@@ -422,16 +481,24 @@ function renderOrderCard(eventName, orderData) {
   // Now query for the delete button element
   const deleteButton = eventCard.querySelector('.delete-button');
   deleteButton.addEventListener('click', async () => {
-    const deletionResult = await deleteEventById(orderData.orderId);
-    if (deletionResult.success) {
-      eventCard.remove();
-      console.log('successful deletion')
+    const confirmation = confirm("Are you sure you want to delete this event?");
+    if (confirmation) {
+      const deletionResult = await deleteEventById(orderData.orderId);
+      if (deletionResult.success) {
+        eventCard.remove();
+        console.log('successful deletion');
+      } else {
+        console.error(deletionResult.message);
+      }
     } else {
-      console.error(deletionResult.message);
+      console.log('Deletion canceled');
     }
   });
 
   const editButton = eventCard.querySelector('.edit-button');
+  const cancelButton = eventCard.querySelector('.cancel-button');
+ 
+
   editButton.addEventListener('click', () => {
     const fieldDisplayCategory = eventCard.querySelector('.field-value#ticketCategory');
     const selectDisplayCategory = eventCard.querySelector('.edit-input#editTicketCategory');
@@ -487,7 +554,7 @@ function renderOrderCard(eventName, orderData) {
       orderData.numberOfTickets = newTicketValue;
 
       try {
-        const patchResponse = await patchOrders(orderData.orderId, newTicketValue, orderData.ticketCategoryId);
+        const patchResponse = await patchOrders(orderData.orderId, orderData.numberOfTickets, orderData.ticketCategoryId);
         console.log('Order patched successfully:', patchResponse);
       } catch (error) {
         console.error('Error patching order:', error);
@@ -495,7 +562,27 @@ function renderOrderCard(eventName, orderData) {
     };
 
     editButton.removeEventListener('click', saveClickListener); // Remove previous listener if exists
+    
     editButton.addEventListener('click', saveClickListener);
+
+
+  });
+
+
+  cancelButton.addEventListener('click', () => {
+    const fieldDisplayCategory = eventCard.querySelector('.field-value#ticketCategory');
+    const selectDisplayCategory = eventCard.querySelector('.edit-input#editTicketCategory');
+    const fieldDisplayTickets = eventCard.querySelector('.field-value#numberOfTickets');
+    const inputDisplayTickets = eventCard.querySelector('.edit-input#editNumberOfTickets');
+  
+    fieldDisplayCategory.style.display = 'inline-block';
+    selectDisplayCategory.style.display = 'none';
+    
+    fieldDisplayTickets.style.display = 'inline-block';
+    inputDisplayTickets.style.display = 'none';
+    
+    cancelButton.style.display = 'none';
+    editButton.style.display = 'inline-block';
   });
   return eventCard;
 }

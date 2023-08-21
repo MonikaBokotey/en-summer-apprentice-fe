@@ -73,7 +73,7 @@ h1 {
 
 /* Button Styles */
 .btn {
-  background-color: #007bff;
+  background-color: #de6e14;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -83,7 +83,7 @@ h1 {
 }
 
 .btn:hover {
-  background-color: #0056b3;
+  background-color: #de6e14;
 }
 
 .orders-container {
@@ -122,7 +122,7 @@ h1 {
 .edit-button,
 .delete-button {
   padding: 5px 10px;
-  background-color: #007bff;
+  background-color: #de6e14;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -132,7 +132,7 @@ h1 {
 
 .edit-button:hover,
 .delete-button:hover {
-  background-color: #0056b3;
+  background-color: #de6e14;
 }
 
 
@@ -146,12 +146,12 @@ h1 {
 
 .loader i {
   font-size: 40px;
-  color: #007bff; /* You can adjust the color */
+  color: #de6e14; /* You can adjust the color */
 }
 
 #apply-filters {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #de6e14;
   color: white;
   border: none;
   border-radius: 5px;
@@ -160,7 +160,7 @@ h1 {
 }
 
 #apply-filters:hover {
-  background-color: #0056b3;
+  background-color: #de6e14;
 }
 
 .event-image img {
@@ -176,3 +176,65 @@ h1 {
   gap: 20px; /* Adjust gap between event cards */
 }
 
+
+/* Styles for the order details */
+.order-details {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+.order-field {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+}
+
+.field-name {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.field-value {
+  flex-grow: 1;
+}
+
+/* Styles for edit input and select */
+.edit-input {
+  
+  width: fit-content;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: none;
+ 
+}
+
+/* Styles for order buttons */
+.order-buttons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.edit-button,
+.delete-button {
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.delete-button {
+  background-color: #dc3545;
+}
+
+/* Hover effect for buttons */
+.edit-button:hover,
+.delete-button:hover {
+  opacity: 0.8;
+}
